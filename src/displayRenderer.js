@@ -243,6 +243,7 @@ function renderFraction(numerator, denominator) {
     return frac;
 }
 
+
 /**
  * Render square root with overline
  */
