@@ -30,7 +30,8 @@ const OPERATORS = {
     '/': { precedence: 2, associativity: 'left', args: 2 },
     '^': { precedence: 3, associativity: 'right', args: 2 },
     'xʸ': { precedence: 3, associativity: 'right', args: 2 },
-    '%': { precedence: 2, associativity: 'left', args: 2 }
+    '%': { precedence: 2, associativity: 'left', args: 2 },
+    '!': { precedence: 4, associativity: 'left', args: 1 }
 };
 
 /**
@@ -56,7 +57,9 @@ const FUNCTIONS = {
     '∛': { args: 1 },
     '∜': { args: 1 },
     'abs': { args: 1 },
-    'Abs': { args: 1 }
+    'Abs': { args: 1 },
+    'nPr': { args: 2 },
+    'nCr': { args: 2 },
 };
 
 /**
@@ -152,6 +155,13 @@ function tokenize(expression) {
         // Comma (for multi-argument functions)
         if (char === ',') {
             tokens.push({ type: TokenType.COMMA, value: char });
+            i++;
+            continue;
+        }
+
+        // Factorial
+        if (char === '!') {
+            tokens.push({ type: TokenType.OPERATOR, value: '!' });
             i++;
             continue;
         }

@@ -129,6 +129,19 @@ function evaluateOperation(operator, args, angleUnit = 'DEG') {
         case 'abs':
         case 'Abs':
             return Math.abs(args[0]);
+
+        // Combinatorics
+        case '!':
+            if (!Number.isInteger(args[0]) || args[0] < 0) {
+                throw new Error('Factorial requires non-negative integer');
+            }
+            return MathUtils.factorial(args[0]);
+        
+        case 'nPr':
+            return MathUtils.permutation(args[0], args[1]);
+        
+        case 'nCr':
+            return MathUtils.combination(args[0], args[1]);
             
         default:
             throw new Error(`Unknown operator: ${operator}`);
