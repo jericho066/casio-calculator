@@ -30,6 +30,11 @@ function createKeyButton(keyData) {
     button.dataset.key = keyData.id;
     button.dataset.action = keyData.action;
     button.dataset.type = keyData.type;
+
+    // Add ARIA attributes
+    button.setAttribute('role', 'button');
+    button.setAttribute('aria-label', getKeyAriaLabel(keyData));
+    button.setAttribute('tabindex', '0');
     
     // Create label structure
     const labelContainer = document.createElement('div');
@@ -86,6 +91,38 @@ function handleKeyClick(keyId) {
         console.error('handleKeyPress not found');
     }
 }
+
+
+/**
+ * Get accessible label for key
+ */
+function getKeyAriaLabel(keyData) {
+    const state = window.calculatorState;
+    let label = keyData.primary;
+    
+    if (state.shift && keyData.shift) {
+        label = keyData.shift;
+    } else if (state.alpha && keyData.alpha) {
+        label = keyData.alpha;
+    }
+    
+    // Add descriptive labels
+    const descriptions = {
+        'shift': 'Shift key',
+        'alpha': 'Alpha key',
+        'clear': 'All clear',
+        'delete': 'Delete',
+        'equals': 'Equals',
+        'plus': 'Plus',
+        'minus': 'Minus',
+        'multiply': 'Multiply',
+        'divide': 'Divide'
+    };
+    
+    return descriptions[keyData.action] || label;
+}
+
+window.getKeyAriaLabel = getKeyAriaLabel;
 
 
 // Export functions

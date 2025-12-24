@@ -399,8 +399,9 @@ function handleOff() {
     window.clearAll();
 }
 
+
 /**
- * Physical keyboard support
+ * Physical keyboard support with navigation
  */
 function handlePhysicalKeyboard(event) {
     const state = window.calculatorState;
@@ -418,8 +419,12 @@ function handlePhysicalKeyboard(event) {
         'Enter': 'equals',
         'Escape': 'ac',
         'Backspace': 'del',
+        'Delete': 'del',
         '(': 'lparen',
-        ')': 'rparen'
+        ')': 'rparen',
+        's': 'shift',  // S for shift
+        'a': 'alpha',  // A for alpha
+        'm': 'mode'    // M for mode
     };
     
     const mappedKey = keyMap[key];
@@ -431,10 +436,37 @@ function handlePhysicalKeyboard(event) {
         const button = document.querySelector(`[data-key="${mappedKey}"]`);
         if (button) {
             button.classList.add('key-pressed');
-            setTimeout(() => button.classList.remove('key-pressed'), 100);
+            button.focus();
+            setTimeout(() => {
+                button.classList.remove('key-pressed');
+                button.blur();
+            }, 150);
         }
     }
+    
+    // Handle Tab for focus navigation (don't prevent default)
+    if (key === 'Tab') {
+        // Allow natural tab navigation
+        return;
+    }
 }
+
+// Add keyboard navigation for button focus
+document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('keydown', (event) => {
+        const focused = document.activeElement;
+        
+        if (focused && focused.classList.contains('key')) {
+            // Allow Enter/Space to activate focused button
+            if (event.key === ' ' || event.key === 'Enter') {
+                event.preventDefault();
+                focused.click();
+            }
+        }
+    });
+});
+
+
 
 /**
  * Handle memory operations

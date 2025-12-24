@@ -516,3 +516,83 @@ sup {
 }
 
 
+/* ===========================
+   Mobile Touch Optimizations
+   =========================== */
+@media (hover: none) and (pointer: coarse) {
+    /* Touch device detected */
+    .key {
+        height: 50px;
+        font-size: 16px;
+        /* Prevent zoom on iOS */
+        touch-action: manipulation;
+    }
+    
+    .key:active {
+        transform: scale(0.95);
+        background: rgba(255, 255, 255, 0.2);
+    }
+    
+    /* Larger tap targets */
+    .key-shift, .key-alpha {
+        min-width: 60px;
+    }
+}
+
+/* Prevent text selection on touch */
+.key {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Better touch feedback */
+.key:active::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    pointer-events: none;
+}
+
+/* Focus styles for accessibility */
+.key:focus {
+    outline: 2px solid #4a9eff;
+    outline-offset: 2px;
+    z-index: 10;
+}
+
+.key:focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .calculator-container {
+        border: 3px solid #fff;
+    }
+    
+    .key {
+        border: 2px solid #fff;
+    }
+    
+    .display-container {
+        border: 2px solid #000;
+    }
+}
+
+/* Reduced motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+

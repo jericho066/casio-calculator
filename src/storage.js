@@ -69,6 +69,74 @@ function isStorageAvailable() {
     }
 }
 
+/**
+ * Save complete calculator state
+ */
+function saveCompleteState() {
+    const state = window.calculatorState;
+    
+    const completeState = {
+        version: '1.0.0',
+        timestamp: Date.now(),
+        angleUnit: state.angleUnit,
+        precision: state.precision,
+        mode: state.mode,
+        memory: state.memory,
+        lastAns: state.lastAns,
+        modeData: window.modeManager ? window.modeManager.modeData : {}
+    };
+    
+    return saveToStorage(completeState);
+}
+
+/**
+ * Load complete calculator state
+ */
+function loadCompleteState() {
+    const saved = loadFromStorage();
+    
+    if (!saved) return null;
+    
+    const state = window.calculatorState;
+    
+    // Restore basic state
+    state.angleUnit = saved.angleUnit || 'DEG';
+    state.precision = saved.precision || 10;
+    state.mode = saved.mode || 'Math';
+    state.memory = saved.memory || state.memory;
+    state.lastAns = saved.lastAns || 0;
+    
+    // Restore mode data
+    if (saved.modeData && window.modeManager) {
+        window.modeManager.modeData = saved.modeData;
+    }
+    
+    console.log('📂 Complete state loaded');
+    return saved;
+}
+
+/**
+ * Auto-save on changes
+ */
+function enableAutoSave() {
+    // Save state when window closes
+    window.addEventListener('beforeunload', () => {
+        saveCompleteState();
+    });
+    
+    // Save state periodically (every 30 seconds)
+    setInterval(() => {
+        saveCompleteState();
+    }, 30000);
+    
+    console.log('💾 Auto-save enabled');
+}
+
+// Export new functions
+window.saveCompleteState = saveCompleteState;
+window.loadCompleteState = loadCompleteState;
+window.enableAutoSave = enableAutoSave;
+
 // Make functions globally accessible
 window.saveToStorage = saveToStorage;
 window.loadFromStorage = loadFromStorage;

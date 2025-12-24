@@ -75,19 +75,28 @@ function initCalculator() {
     
     console.log('✅ Calculator initialized successfully!');
     console.log('State:', state);
+
+    // Enable auto-save
+    enableAutoSave();
+    
+    // Log success message
+    console.log('✅ Calculator initialized successfully!');
+    console.log('📋 Quick commands:');
+    console.log('  - runTests() - Run test suite');
+    console.log('  - modeManager.switchMode("STAT") - Switch modes');
+    console.log('  - memoryManager.displayMemories() - View memories');
+    console.log('  - Press S for SHIFT, A for ALPHA, M for MODE');
 }
 
 // ===========================
 // Settings Management
 // ===========================
 function loadSettings() {
-    const saved = loadFromStorage();
+    const saved = loadCompleteState();
     if (saved) {
-        state.angleUnit = saved.angleUnit || 'DEG';
-        state.precision = saved.precision || 10;
-        state.memory = saved.memory || state.memory;
-        state.lastAns = saved.lastAns || 0;
         console.log('⚙️ Settings loaded from storage');
+    } else {
+        console.log('⚙️ Using default settings');
     }
 }
 
