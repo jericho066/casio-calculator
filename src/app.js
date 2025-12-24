@@ -42,6 +42,17 @@ function initCalculator() {
     
     // Load saved settings from localStorage
     loadSettings();
+
+    // Initialize mode manager
+    if (typeof window.modeManager !== 'undefined') {
+        console.log('✅ Mode manager initialized');
+    }
+    
+    // Initialize memory manager and load saved memories
+    if (typeof window.memoryManager !== 'undefined') {
+        window.memoryManager.loadFromState(state);
+        console.log('✅ Memory manager initialized');
+    }
     
     // Render the keyboard
     if (typeof renderKeyboard === 'function') {

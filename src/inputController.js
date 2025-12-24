@@ -172,6 +172,22 @@ function handleOperatorKey(key) {
 function handleFunctionKey(key) {
     const state = window.calculatorState;
 
+    // Special handling for memory operations
+    if (key.action === 'mplus') {
+        handleMemoryPlus();
+        return;
+    }
+    
+    if (key.action === 'rcl') {
+        if (state.shift) {
+            // SHIFT + RCL = STO
+            handleStore();
+        } else {
+            handleRecall();
+        }
+        return;
+    }
+
     // Special handling for Ans
     if (key.action === 'ans') {
         state.inputBuffer += state.lastAns.toString();
@@ -338,8 +354,13 @@ function handleEquals() {
  * Handle mode menu
  */
 function openModeMenu() {
-    console.log('📋 Opening MODE menu (to be implemented in Phase 6)');
-    // Will show: COMP, STAT, TABLE, EQN, MATRIX, VECTOR, etc.
+    console.log('📋 MODE Menu');
+    
+    const modes = window.modeManager.showModeMenu();
+    
+    // For demonstration, let's allow quick mode switching via console
+    console.log('To switch mode, use: modeManager.switchMode("STAT")');
+    console.log('Available modes:', modes.join(', '));
 }
 
 /**
@@ -354,7 +375,12 @@ function openSetupMenu() {
  * Handle directional pad
  */
 function handleDirectionalPad() {
-    console.log('🎮 D-pad pressed (cursor movement to be implemented)');
+    console.log('⚙️ SETUP Menu');
+    
+    window.modeManager.showSetupMenu();
+    
+    // Quick toggle angle unit
+    console.log('To toggle angle unit, use: modeManager.toggleAngleUnit()');
 }
 
 /**
@@ -411,6 +437,51 @@ function handlePhysicalKeyboard(event) {
 }
 
 /**
+ * Handle memory operations
+ */
+function handleMemoryPlus() {
+    const state = window.calculatorState;
+    
+    if (state.lastAns !== null && state.lastAns !== undefined) {
+        window.memoryManager.add('M', state.lastAns);
+    } else if (state.inputBuffer) {
+        try {
+            const value = evaluateWithState(state.inputBuffer);
+            window.memoryManager.add('M', value);
+        } catch (error) {
+            window.setError('Math ERROR');
+        }
+    }
+}
+
+function handleMemoryMinus() {
+    const state = window.calculatorState;
+    
+    if (state.lastAns !== null && state.lastAns !== undefined) {
+        window.memoryManager.subtract('M', state.lastAns);
+    } else if (state.inputBuffer) {
+        try {
+            const value = evaluateWithState(state.inputBuffer);
+            window.memoryManager.subtract('M', value);
+        } catch (error) {
+            window.setError('Math ERROR');
+        }
+    }
+}
+
+function handleStore() {
+    console.log('💾 STO function - Enter register');
+    window.memoryManager.promptStore();
+}
+
+function handleRecall() {
+    console.log('📂 RCL function - Enter register');
+    window.memoryManager.promptRecall();
+}
+
+
+
+/**
  * Play key sound (optional - placeholder)
  */
 function playKeySound(type) {
@@ -420,5 +491,9 @@ function playKeySound(type) {
 }
 
 // Export functions
+window.handleMemoryPlus = handleMemoryPlus;
+window.handleMemoryMinus = handleMemoryMinus;
+window.handleStore = handleStore;
+window.handleRecall = handleRecall;
 window.initInputController = initInputController;
 window.handleKeyPress = handleKeyPress;
