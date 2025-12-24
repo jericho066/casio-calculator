@@ -44,6 +44,9 @@ function handleKeyPress(keyId) {
         case 'function':
             handleFunctionKey(key);
             break;
+        case 'special':
+            handleSpecialKey(key);
+            break;
         case 'input':
             handleInputKey(key);
             break;
@@ -146,24 +149,188 @@ function handleModifierKey(key) {
 }
 
 /**
+ * Handle special operation keys (x², x³, x⁻¹, √, etc.)
+ */
+function handleSpecialKey(key) {
+    const state = window.calculatorState;
+    
+    switch (key.action) {
+        case 'square':
+            applyUnaryOperation('^2', 'x²');
+            break;
+            
+        case 'cube':
+            if (state.shift) {
+                handleBaseConversion('DEC');
+            } else {
+                applyUnaryOperation('^3', 'x³');
+            }
+            break;
+            
+        case 'reciprocal':
+            if (state.shift) {
+                insertFunction('∜(', ')');
+            } else if (state.alpha) {
+                handleBaseConversion('HEX');
+            } else {
+                applyUnaryOperation('^(-1)', 'x⁻¹');
+            }
+            break;
+            
+        case 'sqrt':
+            if (state.shift) {
+                insertFunction('√(', ')');
+            } else {
+                insertFunction('sqrt(', ')');
+            }
+            break;
+            
+        case 'power':
+            if (state.alpha) {
+                handleBaseConversion('OCT');
+            } else {
+                state.inputBuffer += '^(';
+            }
+            break;
+            
+        case 'fraction':
+            if (state.shift) {
+                insertFunction('∛(', ')');
+            } else {
+                state.inputBuffer += '(';
+            }
+            break;
+            
+        case 'calc':
+            if (state.shift) {
+                handleSolve();
+            } else {
+                handleCalc();
+            }
+            break;
+            
+        case 'negative':
+            if (state.shift) {
+                state.inputBuffer += '∠';
+            } else if (state.alpha) {
+                state.inputBuffer += 'A';
+            } else {
+                state.inputBuffer += '(-';
+            }
+            break;
+            
+        case 'sd':
+            if (state.shift) {
+                state.inputBuffer += '÷';
+            } else if (state.alpha) {
+                state.inputBuffer += 'Y';
+            } else {
+                console.log('Sexagesimal conversion');
+            }
+            break;
+            
+        default:
+            console.warn('Unknown special action:', key.action);
+    }
+    
+    state.shift = false;
+    state.alpha = false;
+    updateShiftAlphaVisuals();
+}
+
+/**
+ * Apply unary operation to last number or Ans
+ */
+function applyUnaryOperation(operation, displaySymbol) {
+    const state = window.calculatorState;
+    
+    if (!state.inputBuffer || state.inputBuffer.trim() === '') {
+        if (state.lastAns !== null && state.lastAns !== undefined) {
+            state.inputBuffer = `Ans${operation}`;
+        } else {
+            state.inputBuffer = `${operation}`;
+        }
+    } else {
+        const lastChar = state.inputBuffer[state.inputBuffer.length - 1];
+        
+        if (/[0-9\)]/.test(lastChar)) {
+            state.inputBuffer += operation;
+        } else {
+            state.inputBuffer += `(${operation}`;
+        }
+    }
+}
+
+/**
+ * Insert function with opening and closing
+ */
+function insertFunction(opening, closing) {
+    const state = window.calculatorState;
+    state.inputBuffer += opening;
+}
+
+/**
+ * Handle base conversion display
+ */
+function handleBaseConversion(base) {
+    console.log(`Switching to ${base} base`);
+    window.modeManager.switchMode('BASE', base);
+}
+
+/**
+ * Handle CALC function
+ */
+function handleCalc() {
+    console.log('CALC function - for use with STAT/TABLE modes');
+}
+
+/**
+ * Handle SOLVE function
+ */
+function handleSolve() {
+    console.log('SOLVE function - equation solver');
+}
+
+
+/**
  * Handle operator keys (+, -, ×, ÷, ^)
  */
 function handleOperatorKey(key) {
     const state = window.calculatorState;
-    let operator = getActiveLabel(key);
     
-    // Append operator to input buffer
+    // Check for SHIFT functions on operator keys
+    if (state.shift) {
+        switch (key.id) {
+            case 'multiply':
+                state.inputBuffer += 'nPr(';
+                state.shift = false;
+                updateShiftAlphaVisuals();
+                return;
+            case 'div2':
+                state.inputBuffer += 'nCr(';
+                state.shift = false;
+                updateShiftAlphaVisuals();
+                return;
+            case 'plus':
+                state.inputBuffer += 'Pol(';
+                state.shift = false;
+                updateShiftAlphaVisuals();
+                return;
+            case 'minus':
+                state.inputBuffer += 'Rec(';
+                state.shift = false;
+                updateShiftAlphaVisuals();
+                return;
+        }
+    }
+    
+    let operator = getActiveLabel(key);
     state.inputBuffer += operator;
     
-    // Clear shift/alpha after use
     state.shift = false;
     state.alpha = false;
-
-    // Update display tree for natural rendering
     state.displayTree = state.inputBuffer;
-
     updateShiftAlphaVisuals();
-
 }
 
 /**
@@ -180,7 +347,6 @@ function handleFunctionKey(key) {
     
     if (key.action === 'rcl') {
         if (state.shift) {
-            // SHIFT + RCL = STO
             handleStore();
         } else {
             handleRecall();
@@ -190,30 +356,70 @@ function handleFunctionKey(key) {
 
     // Special handling for Ans
     if (key.action === 'ans') {
-        state.inputBuffer += state.lastAns.toString();
+        if (state.shift) {
+            console.log('DRG angle conversion');
+            window.modeManager.toggleAngleUnit();
+        } else if (state.alpha) {
+            state.inputBuffer += 'e';
+        } else {
+            state.inputBuffer += 'Ans';
+        }
         state.shift = false;
         state.alpha = false;
         updateShiftAlphaVisuals();
         return;
     }
 
+    // Special handling for ENG and x10^x
+    if (key.action === 'eng') {
+        if (state.shift) {
+            state.inputBuffer += '←';
+        } else {
+            console.log('ENG notation toggle');
+        }
+        state.shift = false;
+        state.alpha = false;
+        updateShiftAlphaVisuals();
+        return;
+    }
+
+    if (key.action === 'exp10') {
+        if (state.shift) {
+            const random = Math.random();
+            state.inputBuffer += random.toString();
+        } else if (state.alpha) {
+            state.inputBuffer += 'π';
+        } else {
+            state.inputBuffer += '×10^(';
+        }
+        state.shift = false;
+        state.alpha = false;
+        updateShiftAlphaVisuals();
+        return;
+    }
 
     let func = getActiveLabel(key);
     
+    // Handle hyperbolic mode for trig functions
+    if (state.hypMode && ['sin', 'cos', 'tan'].includes(func)) {
+        func = func + 'h';
+        state.hypMode = false;
+    }
+    
     // Add function with opening parenthesis
-    if (['sin', 'cos', 'tan', 'log', 'ln', 'sqrt', '√'].includes(func)) {
+    if (['sin', 'cos', 'tan', 'sin⁻¹', 'cos⁻¹', 'tan⁻¹', 'sinh', 'cosh', 'tanh', 'log', 'ln', 'sqrt', '√', '∛', '∜', 'Abs'].includes(func)) {
         state.inputBuffer += func + '(';
+    } else if (func === '10ˣ') {
+        state.inputBuffer += '10^(';
+    } else if (func === 'eˣ') {
+        state.inputBuffer += 'e^(';
     } else {
         state.inputBuffer += func;
     }
     
-    // Clear shift/alpha after use
     state.shift = false;
     state.alpha = false;
-
-    // Update display tree for natural rendering
     state.displayTree = state.inputBuffer;
-
     updateShiftAlphaVisuals();
 }
 
@@ -223,25 +429,103 @@ function handleFunctionKey(key) {
  */
 function handleInputKey(key) {
     const state = window.calculatorState;
-    let input = getActiveLabel(key);
     
-    // Special handling for certain inputs
-    if (input === '•') {
-        input = '.'; // Convert bullet to decimal point
+    // Check for SHIFT functions on number keys
+    if (state.shift) {
+        switch (key.id) {
+            case 'num7':
+                console.log('Constants menu');
+                state.shift = false;
+                updateShiftAlphaVisuals();
+                return;
+            case 'num8':
+                console.log('Conversion menu');
+                state.shift = false;
+                updateShiftAlphaVisuals();
+                return;
+            case 'num9':
+                console.log('Clear menu');
+                state.shift = false;
+                updateShiftAlphaVisuals();
+                return;
+            case 'num4':
+                window.modeManager.switchMode('MATRIX');
+                state.shift = false;
+                updateShiftAlphaVisuals();
+                return;
+            case 'num5':
+                window.modeManager.switchMode('VECTOR');
+                state.shift = false;
+                updateShiftAlphaVisuals();
+                return;
+            case 'num1':
+                window.modeManager.switchMode('STAT');
+                state.shift = false;
+                updateShiftAlphaVisuals();
+                return;
+            case 'num2':
+                window.modeManager.switchMode('COMPLEX');
+                state.shift = false;
+                updateShiftAlphaVisuals();
+                return;
+            case 'num3':
+                window.modeManager.switchMode('BASE');
+                state.shift = false;
+                updateShiftAlphaVisuals();
+                return;
+            case 'num0':
+                if (state.lastAns !== null && state.lastAns !== undefined) {
+                    state.inputBuffer += Math.round(state.lastAns).toString();
+                }
+                state.shift = false;
+                updateShiftAlphaVisuals();
+                return;
+            case 'dot':
+                state.inputBuffer += Math.random().toString();
+                state.shift = false;
+                updateShiftAlphaVisuals();
+                return;
+        }
     }
     
-    // Append to input buffer
-    state.inputBuffer += input;
+    let input = getActiveLabel(key);
     
-    // Clear shift/alpha after use
+    // Special handling for shift/alpha inputs
+    if (state.shift) {
+        switch (key.action) {
+            case 'lparen':
+                input = '%';
+                break;
+            case 'rparen':
+                input = ',';
+                break;
+        }
+    }
+    
+    if (state.alpha) {
+        switch (key.action) {
+            case 'eng':
+                input = 'i';
+                break;
+            case 'rparen':
+                input = 'X';
+                break;
+            case 'comma':
+                input = 'B';
+                break;
+        }
+    }
+    
+    // Special handling for dot
+    if (input === '•' || input === '∘,,,') {
+        input = '.';
+    }
+    
+    state.inputBuffer += input;
     state.shift = false;
     state.alpha = false;
-
-    // Update display tree for natural rendering
     state.displayTree = state.inputBuffer;
-
     updateShiftAlphaVisuals();
-
 }
 
 /**

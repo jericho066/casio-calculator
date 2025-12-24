@@ -123,6 +123,13 @@ function tokenize(expression) {
         }
         if (foundConstant) continue;
         
+        // Check for Ans
+        if (expression.substr(i, 3) === 'Ans') {
+            tokens.push({ type: TokenType.VARIABLE, value: 'Ans' });
+            i += 3;
+            continue;
+        }
+        
         // Operators
         if (OPERATORS[char]) {
             // Check for unary minus

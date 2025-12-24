@@ -174,11 +174,20 @@ function evaluate(rpnTokens, context = {}) {
                 
             case TokenType.VARIABLE:
                 // Look up variable in memory
-                const varValue = memory[token.value];
-                if (varValue !== null && varValue !== undefined) {
-                    stack.push(varValue);
+                if (token.value === 'Ans') {
+                    const ansValue = context.lastAns !== undefined ? context.lastAns : window.calculatorState?.lastAns;
+                    if (ansValue !== null && ansValue !== undefined) {
+                        stack.push(ansValue);
+                    } else {
+                        stack.push(0);
+                    }
                 } else {
-                    throw new Error(`Undefined variable: ${token.value}`);
+                    const varValue = memory[token.value];
+                    if (varValue !== null && varValue !== undefined) {
+                        stack.push(varValue);
+                    } else {
+                        throw new Error(`Undefined variable: ${token.value}`);
+                    }
                 }
                 break;
                 
@@ -252,7 +261,8 @@ function evaluateWithState(expression) {
     const state = window.calculatorState;
     return evaluateExpression(expression, {
         angleUnit: state.angleUnit,
-        memory: state.memory
+        memory: state.memory,
+        lastAns: state.lastAns  
     });
 }
 

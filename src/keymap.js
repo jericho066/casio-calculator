@@ -15,25 +15,25 @@ const KEYMAP = [
     
     // Row 2: CALC, fraction, x³, x⁻¹, log
     [
-        { id: 'calc', primary: 'CALC', shift: 'SOLVE', alpha: null, action: 'calc', type: 'function', cssClass: 'key-dark' },
-        { id: 'frac', primary: '⎕/⎕', shift: '∛', alpha: null, action: 'fraction', type: 'input', cssClass: 'key-dark' },
-        { id: 'cube', primary: 'x³', shift: 'DEC', alpha: null, action: 'cube', type: 'function', cssClass: 'key-dark' },
-        { id: 'reciprocal', primary: 'x⁻¹', shift: '∜', alpha: 'HEX', action: 'reciprocal', type: 'function', cssClass: 'key-dark' },
+        { id: 'calc', primary: 'CALC', shift: 'SOLVE', alpha: null, action: 'calc', type: 'special', cssClass: 'key-dark' },
+        { id: 'frac', primary: '⎕/⎕', shift: '∛', alpha: null, action: 'fraction', type: 'special', cssClass: 'key-dark' },
+        { id: 'cube', primary: 'x³', shift: 'DEC', alpha: null, action: 'cube', type: 'special', cssClass: 'key-dark' },
+        { id: 'reciprocal', primary: 'x⁻¹', shift: '∜', alpha: 'HEX', action: 'reciprocal', type: 'special', cssClass: 'key-dark' },
         { id: 'log', primary: 'log', shift: '10ˣ', alpha: 'BIN', action: 'log', type: 'function', cssClass: 'key-dark' }
     ],
     
     // Row 3: Division, Square Root, x², Power, ln
     [
         { id: 'divide', primary: '÷', shift: '⌇', alpha: null, action: 'divide', type: 'operator', cssClass: 'key-dark' },
-        { id: 'sqrt', primary: '√', shift: '√n', alpha: null, action: 'sqrt', type: 'function', cssClass: 'key-dark' },
-        { id: 'square', primary: 'x²', shift: null, alpha: null, action: 'square', type: 'function', cssClass: 'key-dark' },
-        { id: 'power', primary: 'xʸ', shift: null, alpha: 'OCT', action: 'power', type: 'operator', cssClass: 'key-dark' },
+        { id: 'sqrt', primary: '√', shift: '√n', alpha: null, action: 'sqrt', type: 'special', cssClass: 'key-dark' },
+        { id: 'square', primary: 'x²', shift: null, alpha: null, action: 'square', type: 'special', cssClass: 'key-dark' },
+        { id: 'power', primary: 'xʸ', shift: null, alpha: 'OCT', action: 'power', type: 'special', cssClass: 'key-dark' },
         { id: 'ln', primary: 'ln', shift: 'eˣ', alpha: null, action: 'ln', type: 'function', cssClass: 'key-dark' }
     ],
     
     // Row 4: (-), 0,,,, hyp, sin, cos, tan
     [
-        { id: 'neg', primary: '(−)', shift: '∠', alpha: 'A', action: 'negative', type: 'function', cssClass: 'key-dark' },
+        { id: 'neg', primary: '(−)', shift: '∠', alpha: 'A', action: 'negative', type: 'special', cssClass: 'key-dark' },
         { id: 'comma', primary: '∘,,,', shift: '←', alpha: 'B', action: 'comma', type: 'input', cssClass: 'key-dark' },
         { id: 'hyp', primary: 'hyp', shift: 'Abs', alpha: 'C', action: 'hyp', type: 'modifier', cssClass: 'key-dark' },
         { id: 'sin', primary: 'sin', shift: 'sin⁻¹', alpha: 'D', action: 'sin', type: 'function', cssClass: 'key-dark' },
@@ -47,7 +47,7 @@ const KEYMAP = [
         { id: 'eng', primary: 'ENG', shift: '←', alpha: 'i', action: 'eng', type: 'function', cssClass: 'key-dark' },
         { id: 'lparen', primary: '(', shift: '%', alpha: null, action: 'lparen', type: 'input', cssClass: 'key-dark' },
         { id: 'rparen', primary: ')', shift: ',', alpha: 'X', action: 'rparen', type: 'input', cssClass: 'key-dark' },
-        { id: 'sd', primary: 'S⇔D', shift: '÷', alpha: 'Y', action: 'sd', type: 'function', cssClass: 'key-dark' },
+        { id: 'sd', primary: 'S⇔D', shift: '÷', alpha: 'Y', action: 'sd', type: 'special', cssClass: 'key-dark' },
         { id: 'mplus', primary: 'M+', shift: 'M−', alpha: 'M', action: 'mplus', type: 'function', cssClass: 'key-dark' }
     ],
     
