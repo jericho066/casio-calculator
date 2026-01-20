@@ -22,9 +22,9 @@
         <!-- Display Section -->
         <div class="display-container" role="region" aria-label="Calculator display">
             <div class="display-top-bar">
-                <span class="indicator" id="indicator-m" aria-label="Memory indicator"></span>
+                <span class="indicator" id="indicator-m" aria-label="Memory indicator" style="visibility: hidden;"></span>
                 <span class="indicator" id="indicator-mode" aria-label="Current mode">Math</span>
-                <span class="indicator" id="indicator-up">▲</span>
+                <span class="indicator" id="indicator-up" style="visibility: hidden;">▲</span>
             </div>
             <div class="display-main">
                 <div class="display-line display-input" id="display-input" 
@@ -54,6 +54,8 @@
     <script src="src/mathEngine/base.js"></script>
 
     <!-- Scripts -->
+    <script src="src/cursor.js"></script>
+    <script src="src/history.js"></script>
     <script src="src/keymap.js"></script>
     <script src="src/storage.js"></script>
     <script src="src/parser.js"></script>

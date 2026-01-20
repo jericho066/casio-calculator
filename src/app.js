@@ -16,6 +16,7 @@ const state = {
     alpha: false,              // alpha key active
     hypMode: false,
     inputBuffer: '',           // raw input string
+    cursorPosition: 0,
     displayTree: null,         // parsed AST for natural display
     stack: [],                 // calculation history
     memory: {                  // memory registers
@@ -42,6 +43,12 @@ function initCalculator() {
     
     // Load saved settings from localStorage
     loadSettings();
+
+    // Load calculation history
+    if (typeof window.historyManager !== 'undefined') {
+        window.historyManager.load();
+        console.log('✅ History manager initialized');
+    }
 
     // Initialize mode manager
     if (typeof window.modeManager !== 'undefined') {
@@ -191,14 +198,18 @@ function clearAll() {
     state.error = null;
     state.shift = false;
     state.alpha = false;
+    state.cursorPosition = 0;
+    window.cursorManager.reset(0);
     updateDisplay();
     updateShiftAlphaIndicators();
 }
 
 function deleteLastChar() {
     if (state.inputBuffer.length > 0) {
-        state.inputBuffer = state.inputBuffer.slice(0, -1);
+        state.inputBuffer = window.cursorManager.deleteAt(state.inputBuffer);
+        state.cursorPosition = window.cursorManager.getPosition();
         updateDisplay();
+
     }
 }
 
@@ -223,6 +234,18 @@ function updateShiftAlphaIndicators() {
         }
     }
 }
+
+// Helper function to view history
+function showHistory() {
+    if (window.historyManager) {
+        window.historyManager.display();
+    } else {
+        console.log('History manager not available');
+    }
+}
+
+// Make it globally accessible
+window.showHistory = showHistory;
 
 // ===========================
 // Start the Application

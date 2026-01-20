@@ -25,7 +25,7 @@ function handleKeyPress(keyId) {
         return;
     }
     
-    console.log('🔘 Key pressed:', keyId, '| Type:', key.type, '| Action:', key.action);
+    console.log('📘 Key pressed:', keyId, '| Type:', key.type, '| Action:', key.action);
     
     // Route to appropriate handler based on key type
     switch (key.type) {
@@ -109,7 +109,7 @@ function handleControlKey(key) {
             break;
             
         case 'dpad':
-            handleDirectionalPad();
+            handleDirectionalPad(key);  // ✅ Fixed typo
             break;
             
         default:
@@ -153,51 +153,79 @@ function handleModifierKey(key) {
  */
 function handleSpecialKey(key) {
     const state = window.calculatorState;
+
+    // Exit history browsing mode when user starts typing
+    if (window.historyManager && window.historyManager.isBrowsing()) {
+        window.historyManager.exitBrowsing();
+    }
+    
+    let textToInsert = '';
     
     switch (key.action) {
         case 'square':
             applyUnaryOperation('^2', 'x²');
-            break;
+            state.shift = false;
+            state.alpha = false;
+            updateShiftAlphaVisuals();
+            return;
             
         case 'cube':
             if (state.shift) {
                 handleBaseConversion('DEC');
+                state.shift = false;
+                updateShiftAlphaVisuals();
+                return;
             } else {
                 applyUnaryOperation('^3', 'x³');
+                state.shift = false;
+                state.alpha = false;
+                updateShiftAlphaVisuals();
+                return;
             }
-            break;
             
         case 'reciprocal':
             if (state.shift) {
-                insertFunction('∜(', ')');
+                textToInsert = '∜(';
             } else if (state.alpha) {
                 handleBaseConversion('HEX');
+                state.shift = false;
+                state.alpha = false;
+                updateShiftAlphaVisuals();
+                return;
             } else {
                 applyUnaryOperation('^(-1)', 'x⁻¹');
+                state.shift = false;
+                state.alpha = false;
+                updateShiftAlphaVisuals();
+                return;
             }
             break;
             
         case 'sqrt':
             if (state.shift) {
-                insertFunction('√(', ')');
+                textToInsert = '√(';
             } else {
-                insertFunction('sqrt(', ')');
+                textToInsert = 'sqrt(';
             }
             break;
             
         case 'power':
             if (state.alpha) {
                 handleBaseConversion('OCT');
+                state.shift = false;
+                state.alpha = false;
+                updateShiftAlphaVisuals();
+                return;
             } else {
-                state.inputBuffer += '^(';
+                textToInsert = '^(';
             }
             break;
             
         case 'fraction':
             if (state.shift) {
-                insertFunction('∛(', ')');
+                textToInsert = '∛(';
             } else {
-                state.inputBuffer += '(';
+                textToInsert = '(';
             }
             break;
             
@@ -207,30 +235,47 @@ function handleSpecialKey(key) {
             } else {
                 handleCalc();
             }
-            break;
+            state.shift = false;
+            state.alpha = false;
+            updateShiftAlphaVisuals();
+            return;
             
         case 'negative':
             if (state.shift) {
-                state.inputBuffer += '∠';
+                textToInsert = '∠';
             } else if (state.alpha) {
-                state.inputBuffer += 'A';
+                textToInsert = 'A';
             } else {
-                state.inputBuffer += '(-';
+                textToInsert = '(-';
             }
             break;
             
         case 'sd':
             if (state.shift) {
-                state.inputBuffer += '÷';
+                textToInsert = '÷';
             } else if (state.alpha) {
-                state.inputBuffer += 'Y';
+                textToInsert = 'Y';
             } else {
                 console.log('Sexagesimal conversion');
+                state.shift = false;
+                state.alpha = false;
+                updateShiftAlphaVisuals();
+                return;
             }
             break;
             
         default:
             console.warn('Unknown special action:', key.action);
+            state.shift = false;
+            state.alpha = false;
+            updateShiftAlphaVisuals();
+            return;
+    }
+    
+    // Insert text at cursor position
+    if (textToInsert) {
+        state.inputBuffer = window.cursorManager.insertAt(textToInsert, state.inputBuffer);
+        state.cursorPosition = window.cursorManager.getPosition();
     }
     
     state.shift = false;
@@ -246,27 +291,21 @@ function applyUnaryOperation(operation, displaySymbol) {
     
     if (!state.inputBuffer || state.inputBuffer.trim() === '') {
         if (state.lastAns !== null && state.lastAns !== undefined) {
-            state.inputBuffer = `Ans${operation}`;
+            state.inputBuffer = window.cursorManager.insertAt(`Ans${operation}`, state.inputBuffer);
         } else {
-            state.inputBuffer = `${operation}`;
+            state.inputBuffer = window.cursorManager.insertAt(`${operation}`, state.inputBuffer);
         }
     } else {
         const lastChar = state.inputBuffer[state.inputBuffer.length - 1];
         
         if (/[0-9\)]/.test(lastChar)) {
-            state.inputBuffer += operation;
+            state.inputBuffer = window.cursorManager.insertAt(operation, state.inputBuffer);
         } else {
-            state.inputBuffer += `(${operation}`;
+            state.inputBuffer = window.cursorManager.insertAt(`(${operation}`, state.inputBuffer);
         }
     }
-}
-
-/**
- * Insert function with opening and closing
- */
-function insertFunction(opening, closing) {
-    const state = window.calculatorState;
-    state.inputBuffer += opening;
+    
+    state.cursorPosition = window.cursorManager.getPosition();
 }
 
 /**
@@ -297,35 +336,39 @@ function handleSolve() {
  */
 function handleOperatorKey(key) {
     const state = window.calculatorState;
+
+    // Exit history browsing mode when user starts typing
+    if (window.historyManager && window.historyManager.isBrowsing()) {
+        window.historyManager.exitBrowsing();
+    }
+    
+    let textToInsert = '';
     
     // Check for SHIFT functions on operator keys
     if (state.shift) {
         switch (key.id) {
             case 'multiply':
-                state.inputBuffer += 'nPr(';
-                state.shift = false;
-                updateShiftAlphaVisuals();
-                return;
+                textToInsert = 'nPr(';
+                break;
             case 'div2':
-                state.inputBuffer += 'nCr(';
-                state.shift = false;
-                updateShiftAlphaVisuals();
-                return;
+                textToInsert = 'nCr(';
+                break;
             case 'plus':
-                state.inputBuffer += 'Pol(';
-                state.shift = false;
-                updateShiftAlphaVisuals();
-                return;
+                textToInsert = 'Pol(';
+                break;
             case 'minus':
-                state.inputBuffer += 'Rec(';
-                state.shift = false;
-                updateShiftAlphaVisuals();
-                return;
+                textToInsert = 'Rec(';
+                break;
+            default:
+                textToInsert = getActiveLabel(key);
         }
+    } else {
+        textToInsert = getActiveLabel(key);
     }
     
-    let operator = getActiveLabel(key);
-    state.inputBuffer += operator;
+    // Insert at cursor position
+    state.inputBuffer = window.cursorManager.insertAt(textToInsert, state.inputBuffer);
+    state.cursorPosition = window.cursorManager.getPosition();
     
     state.shift = false;
     state.alpha = false;
@@ -338,6 +381,11 @@ function handleOperatorKey(key) {
  */
 function handleFunctionKey(key) {
     const state = window.calculatorState;
+
+    // Exit history browsing mode when user starts typing
+    if (window.historyManager && window.historyManager.isBrowsing()) {
+        window.historyManager.exitBrowsing();
+    }
 
     // Special handling for memory operations
     if (key.action === 'mplus') {
@@ -354,16 +402,25 @@ function handleFunctionKey(key) {
         return;
     }
 
+    let textToInsert = '';
+
     // Special handling for Ans
     if (key.action === 'ans') {
         if (state.shift) {
             console.log('DRG angle conversion');
             window.modeManager.toggleAngleUnit();
+            state.shift = false;
+            state.alpha = false;
+            updateShiftAlphaVisuals();
+            return;
         } else if (state.alpha) {
-            state.inputBuffer += 'e';
+            textToInsert = 'e';
         } else {
-            state.inputBuffer += 'Ans';
+            textToInsert = 'Ans';
         }
+        
+        state.inputBuffer = window.cursorManager.insertAt(textToInsert, state.inputBuffer);
+        state.cursorPosition = window.cursorManager.getPosition();
         state.shift = false;
         state.alpha = false;
         updateShiftAlphaVisuals();
@@ -373,10 +430,17 @@ function handleFunctionKey(key) {
     // Special handling for ENG and x10^x
     if (key.action === 'eng') {
         if (state.shift) {
-            state.inputBuffer += '←';
+            textToInsert = '←';
         } else {
             console.log('ENG notation toggle');
+            state.shift = false;
+            state.alpha = false;
+            updateShiftAlphaVisuals();
+            return;
         }
+        
+        state.inputBuffer = window.cursorManager.insertAt(textToInsert, state.inputBuffer);
+        state.cursorPosition = window.cursorManager.getPosition();
         state.shift = false;
         state.alpha = false;
         updateShiftAlphaVisuals();
@@ -386,12 +450,15 @@ function handleFunctionKey(key) {
     if (key.action === 'exp10') {
         if (state.shift) {
             const random = Math.random();
-            state.inputBuffer += random.toString();
+            textToInsert = random.toString();
         } else if (state.alpha) {
-            state.inputBuffer += 'π';
+            textToInsert = 'π';
         } else {
-            state.inputBuffer += '×10^(';
+            textToInsert = '×10^(';
         }
+        
+        state.inputBuffer = window.cursorManager.insertAt(textToInsert, state.inputBuffer);
+        state.cursorPosition = window.cursorManager.getPosition();
         state.shift = false;
         state.alpha = false;
         updateShiftAlphaVisuals();
@@ -408,14 +475,17 @@ function handleFunctionKey(key) {
     
     // Add function with opening parenthesis
     if (['sin', 'cos', 'tan', 'sin⁻¹', 'cos⁻¹', 'tan⁻¹', 'sinh', 'cosh', 'tanh', 'log', 'ln', 'sqrt', '√', '∛', '∜', 'Abs'].includes(func)) {
-        state.inputBuffer += func + '(';
+        textToInsert = func + '(';
     } else if (func === '10ˣ') {
-        state.inputBuffer += '10^(';
+        textToInsert = '10^(';
     } else if (func === 'eˣ') {
-        state.inputBuffer += 'e^(';
+        textToInsert = 'e^(';
     } else {
-        state.inputBuffer += func;
+        textToInsert = func;
     }
+    
+    state.inputBuffer = window.cursorManager.insertAt(textToInsert, state.inputBuffer);
+    state.cursorPosition = window.cursorManager.getPosition();
     
     state.shift = false;
     state.alpha = false;
@@ -429,6 +499,11 @@ function handleFunctionKey(key) {
  */
 function handleInputKey(key) {
     const state = window.calculatorState;
+
+    // Exit history browsing mode when user starts typing
+    if (window.historyManager && window.historyManager.isBrowsing()) {
+        window.historyManager.exitBrowsing();
+    }
     
     // Check for SHIFT functions on number keys
     if (state.shift) {
@@ -475,13 +550,17 @@ function handleInputKey(key) {
                 return;
             case 'num0':
                 if (state.lastAns !== null && state.lastAns !== undefined) {
-                    state.inputBuffer += Math.round(state.lastAns).toString();
+                    const rounded = Math.round(state.lastAns).toString();
+                    state.inputBuffer = window.cursorManager.insertAt(rounded, state.inputBuffer);
+                    state.cursorPosition = window.cursorManager.getPosition();
                 }
                 state.shift = false;
                 updateShiftAlphaVisuals();
                 return;
             case 'dot':
-                state.inputBuffer += Math.random().toString();
+                const random = Math.random().toString();
+                state.inputBuffer = window.cursorManager.insertAt(random, state.inputBuffer);
+                state.cursorPosition = window.cursorManager.getPosition();
                 state.shift = false;
                 updateShiftAlphaVisuals();
                 return;
@@ -521,7 +600,10 @@ function handleInputKey(key) {
         input = '.';
     }
     
-    state.inputBuffer += input;
+    // Insert at cursor position
+    state.inputBuffer = window.cursorManager.insertAt(input, state.inputBuffer);
+    state.cursorPosition = window.cursorManager.getPosition();
+
     state.shift = false;
     state.alpha = false;
     state.displayTree = state.inputBuffer;
@@ -622,9 +704,17 @@ function handleEquals() {
             result: result,
             timestamp: Date.now()
         });
+
+        // Add to history
+        if (window.historyManager) {
+            window.historyManager.add(state.inputBuffer, result);
+            window.historyManager.save(); // Auto-save
+        }
         
         // Clear input for next calculation
         state.inputBuffer = '';
+        state.cursorPosition = 0;
+        window.cursorManager.reset(0);
         
         console.log('✅ Result:', result);
         
@@ -658,14 +748,103 @@ function openSetupMenu() {
 /**
  * Handle directional pad
  */
-function handleDirectionalPad() {
-    console.log('⚙️ SETUP Menu');
-    
-    window.modeManager.showSetupMenu();
-    
-    // Quick toggle angle unit
-    console.log('To toggle angle unit, use: modeManager.toggleAngleUnit()');
+function handleDirectionalPad(key) {
+    // For now, we'll handle this with a simple approach
+    // In a full implementation, this would show a menu to select which arrow
+    console.log('🎮 Arrow Keys:');
+    console.log('Use physical keyboard arrows or click to position cursor');
+    console.log('Up/Down: Navigate history');
 }
+
+function handleArrowKey(direction) {
+    const state = window.calculatorState;
+    
+    switch (direction) {
+        case 'left':
+            if (window.cursorManager.moveLeft()) {
+                state.cursorPosition = window.cursorManager.getPosition();
+                window.updateDisplay();
+            }
+            break;
+            
+        case 'right':
+            if (window.cursorManager.moveRight(state.inputBuffer.length)) {
+                state.cursorPosition = window.cursorManager.getPosition();
+                window.updateDisplay();
+            }
+            break;
+            
+        case 'up':
+            handleHistoryBackward();
+            break;
+            
+        case 'down':
+            handleHistoryForward();
+            break;
+    }
+}
+
+/**
+ * Navigate backward in history (Up arrow)
+ */
+function handleHistoryBackward() {
+    const state = window.calculatorState;
+    
+    if (!window.historyManager) {
+        console.log('History manager not available');
+        return;
+    }
+    
+    const entry = window.historyManager.backward(state.inputBuffer);
+    
+    if (entry) {
+        state.inputBuffer = entry.expression;
+        state.cursorPosition = state.inputBuffer.length;
+        window.cursorManager.reset(state.inputBuffer.length);
+        window.updateDisplay();
+        
+        console.log('⬆️ History:', entry.expression);
+    } else {
+        console.log('⬆️ Already at oldest entry');
+    }
+}
+
+/**
+ * Navigate forward in history (Down arrow)
+ */
+function handleHistoryForward() {
+    const state = window.calculatorState;
+    
+    if (!window.historyManager) {
+        console.log('History manager not available');
+        return;
+    }
+    
+    const entry = window.historyManager.forward();
+    
+    if (entry) {
+        if (entry.isCurrent) {
+            // Returned to current input
+            state.inputBuffer = entry.expression;
+            console.log('⬇️ Back to current input');
+        } else {
+            state.inputBuffer = entry.expression;
+            console.log('⬇️ History:', entry.expression);
+        }
+        
+        state.cursorPosition = state.inputBuffer.length;
+        window.cursorManager.reset(state.inputBuffer.length);
+        window.updateDisplay();
+    } else {
+        console.log('⬇️ Already at newest entry');
+    }
+}
+
+// Export
+window.handleHistoryBackward = handleHistoryBackward;
+window.handleHistoryForward = handleHistoryForward;
+window.handleArrowKey = handleArrowKey;
+
 
 /**
  * Handle ON button
@@ -688,7 +867,6 @@ function handleOff() {
  * Physical keyboard support with navigation
  */
 function handlePhysicalKeyboard(event) {
-    const state = window.calculatorState;
     const key = event.key;
     
     // Map physical keys to calculator keys
@@ -706,10 +884,18 @@ function handlePhysicalKeyboard(event) {
         'Delete': 'del',
         '(': 'lparen',
         ')': 'rparen',
-        's': 'shift',  // S for shift
-        'a': 'alpha',  // A for alpha
-        'm': 'mode'    // M for mode
+        's': 'shift',
+        'a': 'alpha',
+        'm': 'mode'
     };
+    
+    // Handle arrow keys separately
+    if (key.startsWith('Arrow')) {
+        event.preventDefault();
+        const direction = key.replace('Arrow', '').toLowerCase();
+        handleArrowKey(direction);
+        return;
+    }
     
     const mappedKey = keyMap[key];
     if (mappedKey) {
@@ -749,8 +935,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
-
-
 
 /**
  * Handle memory operations
@@ -794,8 +978,6 @@ function handleRecall() {
     console.log('📂 RCL function - Enter register');
     window.memoryManager.promptRecall();
 }
-
-
 
 /**
  * Play key sound (optional - placeholder)

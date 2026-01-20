@@ -299,6 +299,18 @@ function updateNaturalDisplay() {
     const resultEl = document.getElementById('display-result');
     
     if (!inputEl || !resultEl) return;
+
+    // Show history indicator if browsing
+    const upIndicator = document.getElementById('indicator-up');
+    if (upIndicator && window.historyManager) {
+        if (window.historyManager.isBrowsing()) {
+            upIndicator.textContent = '▲ REPLAY';
+            upIndicator.style.visibility = 'visible';
+        } else {
+            upIndicator.textContent = '▲';
+            upIndicator.style.visibility = 'hidden';
+        }
+    }
     
     // Render input
     if (state.error) {
@@ -310,7 +322,8 @@ function updateNaturalDisplay() {
         inputEl.appendChild(rendered);
         inputEl.style.color = '#000';
     } else {
-        inputEl.textContent = '';
+        // Empty input, just show cursor
+        inputEl.innerHTML = '<span id="cursor" class="cursor">▌</span>';
         inputEl.style.color = '#000';
     }
     
@@ -319,6 +332,66 @@ function updateNaturalDisplay() {
         resultEl.textContent = formatNumber(state.lastAns);
     } else {
         resultEl.textContent = '';
+    }
+}
+
+/**
+ * Render expression with cursor
+ */
+function renderNaturalDisplayWithCursor(expression, cursorPos) {
+    if (!expression) {
+        const container = document.createElement('div');
+        container.className = 'natural-expression';
+        const cursor = document.createElement('span');
+        cursor.id = 'cursor';
+        cursor.className = 'cursor';
+        cursor.textContent = '▌';
+        container.appendChild(cursor);
+        return container;
+    }
+    
+    try {
+        const tokens = parseDisplayExpression(expression);
+        const container = document.createElement('div');
+        container.className = 'natural-expression';
+        
+        let charCount = 0;
+        let cursorInserted = false;
+        
+        tokens.forEach((token, index) => {
+            const tokenLength = token.value ? token.value.length : 1;
+            
+            // Insert cursor if position matches
+            if (!cursorInserted && charCount >= cursorPos) {
+                const cursor = document.createElement('span');
+                cursor.id = 'cursor';
+                cursor.className = 'cursor';
+                cursor.textContent = '▌';
+                container.appendChild(cursor);
+                cursorInserted = true;
+            }
+            
+            const element = renderToken(token);
+            container.appendChild(element);
+            
+            charCount += tokenLength;
+        });
+        
+        // Insert cursor at end if not inserted yet
+        if (!cursorInserted) {
+            const cursor = document.createElement('span');
+            cursor.id = 'cursor';
+            cursor.className = 'cursor';
+            cursor.textContent = '▌';
+            container.appendChild(cursor);
+        }
+        
+        return container;
+    } catch (error) {
+        console.error('Display rendering error:', error);
+        const container = document.createElement('div');
+        container.textContent = expression;
+        return container;
     }
 }
 

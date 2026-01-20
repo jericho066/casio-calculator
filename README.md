@@ -66,7 +66,7 @@ A faithful browser-based replica of the Casio fx-991ES PLUS scientific calculato
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/casio-calculator.git
+git clone https://github.com/jericho066/casio-calculator.git
 cd casio-calculator
 ```
 
@@ -74,34 +74,6 @@ cd casio-calculator
 
 No build process or dependencies required!
 
-### Project Structure
-
-```
-casio-calculator/
-├── index.html              # Main HTML file
-├── styles.css              # Complete styling
-├── src/
-│   ├── app.js             # Application bootstrap
-│   ├── keymap.js          # Button mapping
-│   ├── domRenderer.js     # Keyboard renderer
-│   ├── inputController.js # Input handling
-│   ├── displayRenderer.js # Natural display
-│   ├── parser.js          # Expression tokenizer
-│   ├── evaluator.js       # RPN evaluator
-│   ├── storage.js         # localStorage handler
-│   ├── modes.js           # Mode management
-│   ├── memory.js          # Memory operations
-│   ├── tests.js           # Test suite
-│   └── mathEngine/
-│       ├── utils.js       # Factorial, nPr, nCr
-│       ├── complex.js     # Complex numbers
-│       ├── integration.js # Numerical integration
-│       ├── solver.js      # Equation solving
-│       ├── matrix.js      # Matrix operations
-│       ├── stats.js       # Statistics
-│       └── base.js        # Base conversions
-└── README.md
-```
 
 ## 📖 Usage
 
@@ -246,26 +218,8 @@ memoryManager.add('M', 10)
 - [ ] Multi-language support
 - [ ] Symbolic CAS (Computer Algebra System)
 
-## 📄 License
-
-MIT License - See LICENSE file for details
-
 ## 🙏 Acknowledgments
 
 - Based on the Casio fx-991ES PLUS calculator
 - Built following scientific calculator best practices
 - Inspired by the engineering community
-
-## 👨‍💻 Author
-
-Your Name - [GitHub](https://github.com/yourusername)
-
-## 📮 Contact
-
-For bugs, feature requests, or questions:
-- Open an issue on GitHub
-- Email: your.email@example.com
-
----
-
-**Made with ❤️ and lots of ☕**
